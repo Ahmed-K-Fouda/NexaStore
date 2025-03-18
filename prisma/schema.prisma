@@ -52,4 +52,3 @@ model Cart {
 
   items CartLineItem[]
 }
-
