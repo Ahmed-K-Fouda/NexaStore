@@ -1,0 +1,569 @@
+1- اول حاجه هنروح لموثع lucia.auth
+2- هنروح ل basic api 
+3- هنختار prisma
+4- هحط الكود ده في schema.prisma
+model User {
+  id       Int       @id @default(autoincrement())
+  email String @unique
+  passwordHash String
+  sessions Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  expiresAt DateTime
+
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+5- هصطب npm i @oslojs/encoding @oslojs/crypto
+6- هعمل فولدر جوه ال src ==> actions => auth.ts
+7- هحط الكود ده 
+import { prisma } from "./db.js";
+import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "@oslojs/encoding";
+import { sha256 } from "@oslojs/crypto/sha2";
+
+import type { User, Session } from "@prisma/client";
+
+export function generateSessionToken(): string {
+	const bytes = new Uint8Array(20);
+	crypto.getRandomValues(bytes);
+	const token = encodeBase32LowerCaseNoPadding(bytes);
+	return token;
+}
+
+export async function createSession(token: string, userId: number): Promise<Session> {
+	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	const session: Session = {
+		id: sessionId,
+		userId,
+		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
+	};
+	await prisma.session.create({
+		data: session
+	});
+	return session;
+}
+
+export async function validateSessionToken(token: string): Promise<SessionValidationResult> {
+	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	const result = await prisma.session.findUnique({
+		where: {
+			id: sessionId
+		},
+		include: {
+			user: true
+		}
+	});
+	if (result === null) {
+		return { session: null, user: null };
+	}
+	const { user, ...session } = result;
+	if (Date.now() >= session.expiresAt.getTime()) {
+		await prisma.session.delete({ where: { id: sessionId } });
+		return { session: null, user: null };
+	}
+	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
+		session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+		await prisma.session.update({
+			where: {
+				id: session.id
+			},
+			data: {
+				expiresAt: session.expiresAt
+			}
+		});
+	}
+	return { session, user };
+}
+
+export async function invalidateSession(sessionId: string): Promise<void> {
+	await prisma.session.delete({ where: { id: sessionId } });
+}
+
+export async function invalidateAllSessions(userId: number): Promise<void> {
+	await prisma.session.deleteMany({
+		where: {
+			userId: userId
+		}
+	});
+}
+
+export type SessionValidationResult =
+	| { session: Session; user: User }
+	| { session: null; user: null };
+8- npx prisma db push 
+
+9- هعمل فولدر lib وبعدين جوه prisma.ts
+10 const prisma = new PrismaClient()
+11- export default prisma
+
+12- هنروح ل cookie اللي في موقع lucia 
+13 - هنعمل file في رووت فولدر باسم middeleware.ts
+14 - هحنط الكود ده جاهز 
+// middleware.ts
+import { NextResponse } from "next/server";
+
+import type { NextRequest } from "next/server";
+
+export async function middleware(request: NextRequest): Promise<NextResponse> {
+ if (request.method === "GET") {
+		const response = NextResponse.next();
+		const token = request.cookies.get("session")?.value ?? null;
+		if (token !== null) {
+			// Only extend cookie expiration on GET requests since we can be sure
+			// a new session wasn't set when handling the request.
+			response.cookies.set("session", token, {
+				path: "/",
+				maxAge: 60 * 60 * 24 * 30,
+				sameSite: "lax",
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production"
+			});
+		}
+		return response;
+	}
+  const originHeader = request.headers.get("Origin");
+  // NOTE: You may need to use `X-Forwarded-Host` instead
+  const hostHeader = request.headers.get("Host");
+  if (originHeader === null || hostHeader === null) {
+    return new NextResponse(null, {
+      status: 403,
+    });
+  }
+  let origin: URL;
+  try {
+    origin = new URL(originHeader);
+  } catch {
+    return new NextResponse(null, {
+      status: 403,
+    });
+  }
+  if (origin.host !== hostHeader) {
+    return new NextResponse(null, {
+      status: 403,
+    });
+  }
+  return NextResponse.next();
+}
+
+15- بعدين هنروح لملف auth 
+هنحط الكود ده
+
+import { cookies } from "next/headers";
+
+// ...
+
+export async function setSessionTokenCookie(token: string, expiresAt: Date): Promise<void> {
+	const cookieStore = await cookies();
+	cookieStore.set("session", token, {
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		expires: expiresAt,
+		path: "/"
+	});
+}
+
+export async function deleteSessionTokenCookie(): Promise<void> {
+	const cookieStore = await cookies();
+	cookieStore.set("session", "", {
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		maxAge: 0,
+		path: "/"
+	});
+}
+
+15- وبعدين هضيف ده جزه ال auth
+
+export const getCurrentSession = cache(
+  async (): Promise<SessionValidationResult> => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session")?.value ?? null;
+    if (token === null) {
+      return { session: null, user: null };
+    }
+    const result = await validateSessionToken(token);
+    return result;
+  }
+);
+
+في النهايه ده ملف auth 
+"use server";
+import {
+  encodeBase32LowerCaseNoPadding,
+  encodeHexLowerCase,
+} from "@oslojs/encoding";
+import { sha256 } from "@oslojs/crypto/sha2";
+import { cookies } from "next/headers";
+import type { User, Session } from "@prisma/client";
+import prisma from "@/lib/prisma";
+import { cache } from "react";
+
+export async function generateSessionToken(): Promise<string> {
+  const bytes = new Uint8Array(20);
+  crypto.getRandomValues(bytes);
+  const token = encodeBase32LowerCaseNoPadding(bytes);
+  return token;
+}
+
+export async function createSession(
+  token: string,
+  userId: number
+): Promise<Session> {
+  const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+  const session: Session = {
+    id: sessionId,
+    userId,
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+  };
+  await prisma.session.create({
+    data: session,
+  });
+  return session;
+}
+
+export async function validateSessionToken(
+  token: string
+): Promise<SessionValidationResult> {
+  const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+  const result = await prisma.session.findUnique({
+    where: {
+      id: sessionId,
+    },
+    include: {
+      user: true,
+    },
+  });
+  if (result === null) {
+    return { session: null, user: null };
+  }
+  const { user, ...session } = result;
+  if (Date.now() >= session.expiresAt.getTime()) {
+    await prisma.session.delete({ where: { id: sessionId } });
+    return { session: null, user: null };
+  }
+  if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
+    session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    await prisma.session.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        expiresAt: session.expiresAt,
+      },
+    });
+  }
+  const safeUser = {
+    ...user,
+    passwordHash: undefined,
+  };
+  return { session, user: safeUser };
+}
+
+export async function invalidateSession(sessionId: string): Promise<void> {
+  await prisma.session.delete({ where: { id: sessionId } });
+}
+
+export async function invalidateAllSessions(userId: number): Promise<void> {
+  await prisma.session.deleteMany({
+    where: {
+      userId: userId,
+    },
+  });
+}
+
+export type SessionValidationResult =
+  | { session: Session; user: Omit<User, "passwordHash"> }
+  | { session: null; user: null };
+
+/* cookies */
+export async function setSessionTokenCookie(
+  token: string,
+  expiresAt: Date
+): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set("session", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    expires: expiresAt,
+    path: "/",
+  });
+}
+
+export async function deleteSessionTokenCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set("session", "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  });
+}
+
+export const getCurrentSession = cache(
+  async (): Promise<SessionValidationResult> => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session")?.value ?? null;
+    if (token === null) {
+      return { session: null, user: null };
+    }
+    const result = await validateSessionToken(token);
+    return result;
+  }
+);
+
+/* user resgister login, logout */
+
+export const hashPassword = async (password: string) => {
+  return encodeHexLowerCase(sha256(new TextEncoder().encode(password)));
+};
+console.log(hashPassword("ahmed"));
+
+export const verifyPassword = async (password: string, hash: string) => {
+  const passwordHash = await hashPassword(password);
+  return passwordHash === hash;
+};
+
+export const registerUser = async (email: string, password: string) => {
+  const passwordHash = await hashPassword(password);
+  try {
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+      },
+    });
+    const safeUser = {
+      ...user,
+      passwordHash: undefined,
+    };
+    return {
+      user: safeUser,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      user: null,
+      error: "Failed To Register User!",
+    };
+  }
+};
+
+export const loginUser = async (email: string, password: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+  if (!user) {
+    return {
+      user: null,
+      error: "Invalid User!",
+    };
+  }
+
+  const passwordValid = verifyPassword(password, user.passwordHash);
+  if (!passwordValid) {
+    return {
+      user: null,
+      error: "Invalid Password",
+    };
+  }
+
+  const token = await generateSessionToken();
+  const session = await createSession(token, user.id);
+
+  await setSessionTokenCookie(token, session.expiresAt);
+
+  const safeUser = {
+    ...user,
+    passwordHash: undefined,
+  };
+  return {
+    user: safeUser,
+    error: null,
+  };
+};
+
+export const logoutUser = async () => {
+  const session = await getCurrentSession();
+  if (session.session?.id) {
+    await invalidateSession(session.session.id);
+  }
+  await deleteSessionTokenCookie();
+};
+
+
+17- بعد كده هنعمل فايل signup في app => auth-signup-page.tsx
+
+import { getCurrentSession, loginUser, registerUser } from "@/actions/auth";
+import SignUp from "@/app/components/auth/sign_up/SignUp";
+import { redirect } from "next/navigation";
+import React from "react";
+import { z } from "zod";
+
+const SignupSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(5),
+});
+
+export default async function SignUpPage() {
+  const { user } = await getCurrentSession();
+  if (user) {
+    redirect("/");
+  }
+
+  const action = async (prevState: { message: string }, formData: FormData) => {
+    "use server";
+    const parsed = SignupSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+      return { message: "Invalid form data" };
+    }
+
+    const { email, password } = parsed.data;
+    const { user, error } = await registerUser(email, password);
+
+    if (error) {
+      return { message: error };
+    } else if (user) {
+      await loginUser(email, password);
+      redirect("/");
+    }
+  };
+
+  return <SignUp action={action} />;
+}
+
+
+18- Signup component
+"use client";
+import React from "react";
+import { useFormState } from "react-dom";
+import { Loader2 } from "lucide-react";
+
+const initialState = {
+  message: "",
+};
+
+type SignUpProps = {
+  action: (
+    prevState: { message: string },
+    formData: FormData
+  ) => Promise<{ message: string } | undefined>;
+};
+
+export default function SignUp({ action }: SignUpProps) {
+  const [state, formAction] = useFormState(action, initialState);
+  const isPending = state?.message === "pending";
+  return (
+    <form
+      action={formAction}
+      className="max-w-md mx-auto my-16 bg-white rounded-lg p-8 shadow-md"
+    >
+      <h1 className="text-2xl font-bold text-center mb-2">
+        Join The Deal Revolution!
+      </h1>
+      <p className="text-sm uppercase text-center text-rose-600 font-semibold mb-2">
+        🔥 limited time offer 🔥
+      </p>
+      <p className="text-center text-gray-600 mb-2 text-sm">
+        Sign up now and get 90% OFF your first order 😲!
+      </p>
+
+      <div className="space-y-6">
+        {/* Email */}
+        <div className="space-y-2">
+          <label
+            htmlFor="email"
+            className="block text-sm text-gray-700 font-medium"
+          ></label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            autoComplete="email"
+            required
+            className="w-full px-3 py-4 rounded-md focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-colors border-gray-200 border-2 focus:outline-0"
+            placeholder="Enter your email"
+          />
+        </div>
+
+        {/* Password */}
+        <div className="space-y-2">
+          <label
+            htmlFor="password"
+            className="block text-sm text-gray-700 font-medium"
+          ></label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            autoComplete="new-password"
+            required
+            className="w-full px-3 py-4 rounded-md focus:ring-1 focus:ring-slate-600 focus:border-transparent transition-colors border-gray-200 border-2 focus:outline-0"
+            placeholder="Create a password"
+          />
+        </div>
+
+        {/* Info Section */}
+        <div className="text-center">
+          <p className="text-xs text-gray-500 mb-2">
+            ⚡ Only 127 welcome bonus packages remaining!
+          </p>
+          <p className="text-xs text-gray-500 mb-4">
+            🕗 Offer expires in: 13:45
+          </p>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          className={`w-full bg-rose-600 text-white py-3 rounded-md hover:bg-rose-700 flex items-center justify-center transition-colors font-medium ${
+            isPending ? "cursor-not-allowed opacity-75" : "cursor-pointer"
+          }`}
+          disabled={isPending}
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mx-2 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            "Create Account"
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+19- --------------------- SANITY
+بعد منعمل account هنروح للاعدات وبعدين api وبعدين cors وبعدين نضيف ال host بتاعنا 
+20- هنصب npm i sanity -g
+21- sanity init
+
+22- هروح لnext config لان انا هحمل صور فعايز اعمل صلاحيه بكده
+ images: {
+  domain: ['cdn.sanity.io']
+ }
+23- هروح ل .env واضيف NEXT_PUBLIC_SANITY_API_VERSION = vx
+24- هعمل ملفات في schematype للمنتجات والكاتوجري
+وبعد كده هعمل snity deploy
+
+
+25- sanity schema extract علشان يطلعلي ملف json
+26- sanity typegen generate علشان احولو ل type script
+27- هروح ل tsconfig وهضيف 
+"@/*": ["./src/*","./*"]
+
+24-لما بعمل Call علشان اجيب المنتجات بعملها في ملف sanity/lib/clent 
+export const getAllProducts = async () => {
+  const query = '*[_type == "product"]';
+  const products = await sanityFetch({ query: query });
+  return products.data as Product[] => اللي طلعت من خلال typegen generate;
+};
