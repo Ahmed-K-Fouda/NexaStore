@@ -46,7 +46,7 @@ export default function Cart() {
       setIsLoading(true);
     };
     initCart();
-  }, []);
+  }, [setIsLoading, syncWithUser]);
 
   async function handleProceedToCheckout() {
     if (!cartId || loadingProceed) return;

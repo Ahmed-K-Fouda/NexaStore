@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getCurrentSession } from "@/actions/auth";
 import { getAllProducts } from "@/sanity/lib/client";
 import SalesCampaignBanner from "./components/layout/banner/SalesCampaignBanner";
