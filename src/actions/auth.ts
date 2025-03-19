@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 "use server";
 import {
   encodeBase32LowerCaseNoPadding,
@@ -10,9 +9,13 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { cache } from "react";
 // import type { User } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-type Session = Prisma.SessionGetPayload<{}>;
-type User = Prisma.UserGetPayload<{}>;
+// import { Prisma } from "@prisma/client";
+// type Session = Prisma.SessionGetPayload<{}>;
+type Session = Awaited<ReturnType<typeof prisma.session.findUniqueOrThrow>>;
+
+// type User = Prisma.UserGetPayload<{}>;
+type User = Awaited<ReturnType<typeof prisma.user.findUnique>>;
+
 export async function generateSessionToken(): Promise<string> {
   const bytes = new Uint8Array(20);
   crypto.getRandomValues(bytes);
