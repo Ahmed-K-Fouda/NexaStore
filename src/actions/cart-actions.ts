@@ -5,8 +5,6 @@ import prisma from "@/lib/prisma";
 import { Product } from "@/sanity.types";
 import { urlFor } from "@/sanity/lib/image";
 import { revalidatePath } from "next/cache";
-// import { cookies } from "next/headers";
-
 export const createCart = async () => {
   const { user } = await getCurrentSession();
 
@@ -64,7 +62,7 @@ export const getOrCreateCart = async (cartId?: string | null) => {
   return cart;
 };
 
-export const updateCartItem = async (
+export const updateCartItems = async (
   cartId: string,
   sanityProductId: string,
   data: {
@@ -81,7 +79,6 @@ export const updateCartItem = async (
   );
 
   if (existingItem) {
-    // Update quantity
     if (data.quantity === 0) {
       await prisma.cartLineItem.delete({
         where: {
@@ -148,7 +145,6 @@ export const syncCartWithUser = async (cartId: string | null) => {
   }
 
   if (!cartId) {
-    // !cartId && !existingUserCart
     return createCart();
   }
 
@@ -189,7 +185,6 @@ export const syncCartWithUser = async (cartId: string | null) => {
     );
 
     if (existingItem) {
-      // add two cart quantities together
       await prisma.cartLineItem.update({
         where: {
           id: existingItem.id,
@@ -199,7 +194,6 @@ export const syncCartWithUser = async (cartId: string | null) => {
         },
       });
     } else {
-      // add non-existing item to the user's cart
       await prisma.cartLineItem.create({
         data: {
           id: crypto.randomUUID(),
@@ -230,7 +224,7 @@ export const addWinningItemToCart = async (
 ) => {
   const cart = await getOrCreateCart(cartId);
 
-  const updatedCart = await updateCartItem(cart.id, product._id, {
+  const updatedCart = await updateCartItems(cart.id, product._id, {
     title: `🎁 ${product.title} (Won)`,
     price: 0,
     image: product.image ? urlFor(product.image).url() : "",
