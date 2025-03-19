@@ -9,17 +9,20 @@ type SearchPageProps = {
 
 const SearchPage = async ({ searchParams }: SearchPageProps) => {
   const { query } = await searchParams;
-  const products = await searchProducts(query);
+  const productsRaw = await searchProducts(query);
+
+  const products = Array.isArray(productsRaw) ? productsRaw : [];
+
   return (
     <div>
       <SalesCampaignBanner />
       <div className="bg-red-50 p-4">
         <div className="container mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-center text-red-600 mb-2">
-            Search Results For &qout; {query} &qout; - UP TO 90% OFF 🔥
+            Search Results For {query} - UP TO 90% OFF 🔥
           </h1>
           <p className="text-center text-red-500 text-sm md:text-base animate-pulse">
-            Flash Sale Ending Soon! ⏱ Limitied Time Only
+            Flash Sale Ending Soon! ⏱ Limited Time Only
           </p>
           <p className="text-center text-gray-600 text-xs mt-2">
             Discover Amazing Deals Matching Your Search.
@@ -47,7 +50,7 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
       <section className="container mx-auto py-8">
         <div className="text-center mb-8">
           <p className="text-sm text-gray-500">
-            🎆{products.length} Amazing Deals Avilable Now!
+            🎆 {products.length} Amazing Deals Available Now!
           </p>
         </div>
 

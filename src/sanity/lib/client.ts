@@ -38,12 +38,15 @@ export const getProductsByCategorySlug = async function (slug: string) {
   return products.data as Product;
 };
 
-// search on product
-export const searchProducts = async function (searchQuery: string) {
+export const searchProducts = async function (
+  searchQuery: string
+): Promise<Product[]> {
   const query =
     '*[_type == "product" && (title match "*" + $searchQuery + "*" || description match "*" + $searchQuery + "*" || category->title match "*" + $searchQuery + "*" || category->slug match "*" + $searchQuery + "*")]';
+
   const products = await sanityFetch({ query: query, params: { searchQuery } });
-  return products.data as Product;
+
+  return Array.isArray(products.data) ? products.data : [];
 };
 
 // get product by id
