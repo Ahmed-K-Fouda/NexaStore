@@ -10,9 +10,9 @@ const initialState = {
 
 type SignUpProps = {
   action: (
-    prevState: string,
+    prevState: { message: string },
     formData: FormData
-  ) => Promise<{ message: string } | undefined>;
+  ) => Promise<{ message: string }>;
 };
 
 const SignUp = ({ action }: SignUpProps) => {
@@ -91,10 +91,10 @@ const SignUp = ({ action }: SignUpProps) => {
           }`}
         >
           {isPending ? (
-            <React.Fragment>
+            <>
               <Loader2 className="h-4 w-4 animate-spin" />
               CREATING ACCOUNT...
-            </React.Fragment>
+            </>
           ) : (
             "CREATE ACCOUNT"
           )}
