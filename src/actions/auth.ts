@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 "use server";
 import {
   encodeBase32LowerCaseNoPadding,
@@ -8,7 +9,9 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import { Session, User } from "@prisma/client";
+import type { User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+type Session = Prisma.SessionGetPayload<{}>;
 
 export async function generateSessionToken(): Promise<string> {
   const bytes = new Uint8Array(20);
