@@ -12,10 +12,12 @@ type categoryPageProps = {
 
 const CategoryPage = async ({ params }: categoryPageProps) => {
   const { slug } = await params;
-  const [category, products] = await Promise.all([
+  const [category, productsRaw] = await Promise.all([
     getCategoryBySlug(slug),
     getProductsByCategorySlug(slug),
   ]);
+
+  const products = Array.isArray(productsRaw) ? productsRaw : [];
   return (
     <div>
       <SalesCampaignBanner />

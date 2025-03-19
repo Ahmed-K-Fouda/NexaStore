@@ -84,9 +84,11 @@ export type Order = {
   stripePaymentIntentId?: string;
   totalPrice?: number;
   shippingAddress?: ShippingAddress;
-  orderItems?: Array<{
-    _key: string;
-  } & OrderItem>;
+  orderItems?: Array<
+    {
+      _key: string;
+    } & OrderItem
+  >;
   status?: "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 };
 
@@ -242,5 +244,23 @@ export type PromotionCode = {
   expirationDate?: string;
 };
 
-export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | Order | OrderItem | ShippingAddress | Product | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata | ProductCategory | Slug | PromotionCampaign | PromotionCode;
+export type AllSanitySchemaTypes =
+  | SanityImagePaletteSwatch
+  | SanityImagePalette
+  | SanityImageDimensions
+  | SanityFileAsset
+  | Geopoint
+  | Order
+  | OrderItem
+  | ShippingAddress
+  | Product
+  | SanityImageCrop
+  | SanityImageHotspot
+  | SanityImageAsset
+  | SanityAssetSourceData
+  | SanityImageMetadata
+  | ProductCategory
+  | Slug
+  | PromotionCampaign
+  | PromotionCode;
 export declare const internalGroqTypeReferenceTo: unique symbol;
