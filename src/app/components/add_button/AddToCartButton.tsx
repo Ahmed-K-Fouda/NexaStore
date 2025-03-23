@@ -5,6 +5,7 @@ import { urlFor } from "@/sanity/lib/image";
 import { useCartStore } from "@/store/cart-store";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
+import { toast } from "react-toastify";
 import { useShallow } from "zustand/shallow";
 
 type AddToCartProps = {
@@ -34,6 +35,13 @@ export default function AddToCartButton({ product }: AddToCartProps) {
       image: urlFor(product.image).url(),
       quantity: 1,
     });
+
+    toast.success("Added to cart", {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+    })
 
     setIsLoading(false);
     open();

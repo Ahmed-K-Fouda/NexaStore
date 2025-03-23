@@ -6,13 +6,18 @@ import { Loader2, ShoppingCart, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
+import { confirmAlert } from "react-confirm-alert";
+import { toast } from "react-toastify";
 import { useShallow } from "zustand/shallow";
-
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 const freeShippingAmout = 15; //$15 for free shipping
 
 export default function Cart() {
   const [loadingProceed, setLoadingProceed] = useState<boolean>(false);
+  const [loadingStates, setLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({});
   const {
     syncWithUser,
     updateQuantity,
@@ -61,6 +66,32 @@ export default function Cart() {
   const ramianingForFreeShipping = useMemo(() => {
     return Math.max(0, freeShippingAmout - totalPrice);
   }, [totalPrice]);
+
+
+
+
+function handleRemoveItem(itemId: string) {
+  confirmAlert({
+    title: "Confirm Deletion",
+    message: "Are you sure you want to remove this item from your cart?",
+    buttons: [
+      {
+        label: "Yes, Remove",
+        onClick: async () => {
+          setLoadingStates((prev) => ({ ...prev, [itemId]: true })); 
+          await removeItem(itemId);
+          setLoadingStates((prev) => ({ ...prev, [itemId]: false })); 
+          toast.success("Item removed from cart!");
+        },
+      },
+      {
+        label: "Cancel",
+        onClick: () => {},
+      },
+    ],
+    overlayClassName: "custom-overlay",
+  });
+}
 
   return (
     <React.Fragment>
@@ -158,10 +189,15 @@ export default function Cart() {
                           ))}
                         </select>
                         <button
-                          className=" cursor-pointer bg-red-500 hover:bg-red-700 text-white rounded-lg py-2 px-3 text-sm  transition-colors"
-                          onClick={() => removeItem(item.id)}
+                          className="cursor-pointer bg-red-500 hover:bg-red-700 text-white rounded-lg py-2 px-3 text-sm transition-colors flex items-center gap-2"
+                          onClick={() => handleRemoveItem(item.id)}
+                          disabled={loadingStates[item.id]} 
                         >
-                          Remove
+                          {loadingStates[item.id] ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            "Remove"
+                          )}
                         </button>
                       </div>
                     </div>

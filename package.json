@@ -19,6 +19,7 @@
     "next": "15.2.1",
     "next-sanity": "^9.9.0",
     "react": "^19.0.0",
+    "react-confirm-alert": "^3.0.6",
     "react-dom": "^19.0.0",
     "react-toastify": "^11.0.5",
     "sanity": "^3.78.1",

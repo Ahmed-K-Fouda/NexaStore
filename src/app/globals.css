@@ -35,3 +35,30 @@ body {
   z-index: 80;
   backdrop-filter: blur(2px);
 }
+
+
+.custom-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.react-confirm-alert-button-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.react-confirm-alert-button-group button {
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.react-confirm-alert-button-group button:first-child {
+  background-color: #dc2626;
+  color: white;
+}
+
+.react-confirm-alert-button-group button:last-child {
+  background-color: #e5e7eb;
+  color: #374151;
+}
