@@ -8,11 +8,11 @@ import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 
+
 const freeShippingAmout = 15; //$15 for free shipping
 
 export default function Cart() {
   const [loadingProceed, setLoadingProceed] = useState<boolean>(false);
-
   const {
     syncWithUser,
     updateQuantity,

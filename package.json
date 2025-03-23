@@ -20,6 +20,7 @@
     "next-sanity": "^9.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-toastify": "^11.0.5",
     "sanity": "^3.78.1",
     "stripe": "^17.7.0",
     "styled-components": "^6.1.15",
