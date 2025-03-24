@@ -10,7 +10,8 @@ import { confirmAlert } from "react-confirm-alert";
 import { toast } from "react-toastify";
 import { useShallow } from "zustand/shallow";
 import "react-confirm-alert/src/react-confirm-alert.css";
-
+import { getCurrentSession } from "@/actions/auth";
+import {redirect} from 'next/navigation'
 const freeShippingAmout = 15; //$15 for free shipping
 
 export default function Cart() {
@@ -18,11 +19,18 @@ export default function Cart() {
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
+
+  async function getUser() {
+    const {user} = await getCurrentSession();
+    return user;
+  }
+
   const {
     syncWithUser,
     updateQuantity,
     setIsLoading,
     isOpen,
+    clearCart,
     items,
     close,
     getTotalItems,
@@ -38,6 +46,7 @@ export default function Cart() {
       setIsLoading: state.setIsLoading,
       isOpen: state.isOpen,
       close: state.close,
+      clearCart:state.clearCart,
       cartId: state.cartId,
       getTotalPrice: state.getTotalPrice,
       getTotalItems: state.getTotalItems,
@@ -54,6 +63,15 @@ export default function Cart() {
   }, [setIsLoading, syncWithUser]);
 
   async function handleProceedToCheckout() {
+
+    const user = await getUser();
+    if (!user) {
+      toast.warning('Please Sign up to continue wait redirect..')
+      redirect("/auth/sign-up");
+    }else{
+      clearCart()
+    }
+    
     if (!cartId || loadingProceed) return;
     setLoadingProceed(true);
     const checkoutUrl = await createCheckoutSession(cartId);
