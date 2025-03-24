@@ -3,7 +3,6 @@ import { getCurrentSession } from "@/actions/auth";
 import { getAllProducts } from "@/sanity/lib/client";
 import SalesCampaignBanner from "./components/layout/banner/SalesCampaignBanner";
 import ProductGrid from "./components/product/ProductGrid";
-import { ToastContainer } from "react-toastify";
 import ToastProvider from './components/toastify/ToastProvider';
 export default async function Home() {
   const { user } = await getCurrentSession();

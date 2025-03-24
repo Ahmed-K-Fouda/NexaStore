@@ -8,6 +8,7 @@ import { SanityLive } from "@/sanity/lib/live";
 import HeaderCategorySelector from "./components/layout/header_category/HeaderCategorySelector";
 import { getAllCategories } from "@/sanity/lib/client";
 import Cart from "./components/cart/Cart";
+import ToastProvider from "./components/toastify/ToastProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased bg-white `}>
+        <ToastProvider/>
         <Header user={user} categorySelector={<HeaderCategorySelector />} />
         {children}
 
