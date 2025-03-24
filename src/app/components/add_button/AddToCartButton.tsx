@@ -13,14 +13,16 @@ type AddToCartProps = {
 };
 
 export default function AddToCartButton({ product }: AddToCartProps) {
-  const { addItem, open } = useCartStore(
+  const { addItem, open,close } = useCartStore(
     useShallow((state) => ({
       addItem: state.addItem,
       open: state.open,
+      close:state.close
     }))
   );
 
   const [isLoading, setIsLoading] = useState(false);
+
   async function handleAddToCart() {
     if (!product.title || product.price === undefined || !product.image) return;
 
@@ -44,7 +46,12 @@ export default function AddToCartButton({ product }: AddToCartProps) {
     })
 
     setIsLoading(false);
-    open();
+    if(isLoading){
+      close()
+    }else{
+      open()
+    }
+
   }
 
   if (!product.price) return;
