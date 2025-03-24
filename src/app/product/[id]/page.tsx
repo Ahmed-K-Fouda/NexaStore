@@ -15,6 +15,7 @@ type productPageProps = {
 async function ProductPage({ params }: productPageProps) {
   const { id } = await params;
   const product = await getProductById(id);
+
   if (!product.price) {
     return (
       <div className="bg-red-300 text-2xl mt-2 animate-pulse text-black text-center flex justify-center items-center w-full py-3 px-6">
@@ -23,11 +24,12 @@ async function ProductPage({ params }: productPageProps) {
     );
   }
   const originalPrice = product.price * 5;
+
   return (
     <div className="bg-gray-50">
       <SalesCampaignBanner />
 
-      {/* breadcrump navigation */}
+      {/* breadcrumb navigation */}
       <div className="bg-white border-b border-gray-200">
         <div className="container px-4 py-3 mx-auto">
           <div className="flex items-center gap-2 text-sm">
@@ -48,8 +50,7 @@ async function ProductPage({ params }: productPageProps) {
       <div className="bg-gradient-to-r from-red-500/10 to-red-600/10 py-6 px-4">
         <div className="container mx-auto">
           <h1 className="text-2xl md:text-4xl font-bold text-center text-red-600 mb-3">
-            {" "}
-            🔥 FLASH SALE - 80% OFF 🔥{" "}
+            🔥 FLASH SALE - 80% OFF 🔥
           </h1>
           <div className="flex flex-col items-center gap-2">
             <p className="text-center text-red-500 text-sm md:text-base font-semibold animate-pulse">
@@ -66,23 +67,19 @@ async function ProductPage({ params }: productPageProps) {
       {/* items */}
       <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 py-4">
         <div className="container mx-auto">
-          <div className="flex items-center flex-wrap justify-center gap-4 ext-sm">
-            {/*  */}
+          <div className="flex items-center flex-wrap justify-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <span className="text-yellow-600 text-xl">🚚</span>
               <span className="font-medium">Free Express Shipping</span>
             </div>
-            {/*  */}
             <div className="flex items-center gap-2">
               <span className="text-yellow-600 text-xl">✨</span>
               <span className="font-medium">Satisfaction Guaranteed</span>
             </div>
-            {/*  */}
             <div className="flex items-center gap-2">
               <span className="text-yellow-600 text-xl">🔐</span>
               <span className="font-medium">Secure Checkout</span>
             </div>
-            {/*  */}
           </div>
         </div>
       </div>
@@ -93,26 +90,39 @@ async function ProductPage({ params }: productPageProps) {
           {/* product image */}
           {product.image && (
             <div className="rounded-2xl bg-white p-4 overflow-hidden shadow-lg">
-              <div className="relative aspect-square">
+              <label htmlFor="image-modal" className="relative aspect-square cursor-pointer block">
                 <Image
                   fill
                   priority
                   className="object-cover hover:scale-105 transition-transform duration-300"
                   alt={product.title ?? "Product Image"}
-                  src={urlFor(product.image).url()}
+                  src={urlFor(product.image).quality(100).width(800).height(800).url()}
                 />
+              </label>
+              {/* Full Screen Image Checkbox Hack */}
+              <input type="checkbox" id="image-modal" className="hidden peer" />
+              <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden peer-checked:flex">
+                <label htmlFor="image-modal" className="absolute inset-0 cursor-pointer" />
+                <div className="relative w-[60vw] h-[60vh]">
+                  <Image
+                    fill
+                    className="object-contain"
+                    alt={product.title ?? "Full Screen Product Image"}
+                    src={urlFor(product.image).quality(100).width(1200).height(1200).url()}
+                  />
+                </div>
               </div>
             </div>
           )}
-          {/* product Info*/}
+
+          {/* product Info */}
           <div className="flex flex-col gap-4">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
               {product.title}
             </h1>
             <p className="text-gray-600">{product.description}</p>
 
-            {/* price sec */}
-
+            {/* price section */}
             <div className="flex flex-col gap-2 mt-4">
               <div className="flex items-center gap-3">
                 <div className="flex items-baseline gap-1">
@@ -121,12 +131,10 @@ async function ProductPage({ params }: productPageProps) {
                     {formatPrice(product.price).replace("$", "")}
                   </span>
                 </div>
-
                 <div className="flex flex-col">
                   <span className="text-lg text-gray-400 line-through decoration-red-500/50 decoration-2">
                     {formatPrice(originalPrice)}
                   </span>
-
                   <div className="flex items-center gap-2">
                     <span className="bg-red-600 text-white px-2 py-0.5 rounded text-sm font-bold animate-pulse">
                       -80%
@@ -147,8 +155,8 @@ async function ProductPage({ params }: productPageProps) {
               <div className="flex items-center gap-2 text-xs text-gray-600">
                 <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                 <span>
-                  {Math.floor(Math.random() * 50) + 20}People bought in the last
-                  hour{" "}
+                  {Math.floor(Math.random() * 50) + 20} People bought in the
+                  last hour
                 </span>
               </div>
             </div>
@@ -158,8 +166,7 @@ async function ProductPage({ params }: productPageProps) {
                 <span className="text-xl">⚡</span>
                 <span className="font-bold">Limited Time Offer</span>
               </div>
-
-              <div className="text-sm text-yellow-700 mt-1 font-medium ">
+              <div className="text-sm text-yellow-700 mt-1 font-medium">
                 🏃‍♂️ Order now before offer ends!
               </div>
             </div>
@@ -175,7 +182,7 @@ async function ProductPage({ params }: productPageProps) {
               </div>
               <div className="flex items-center gap-3 text-gray-700">
                 <span className="bg-green-100 p-2 rounded-full">🔃</span>
-                <span className="font-medium">30-day mony back guarantee</span>
+                <span className="font-medium">30-day money back guarantee</span>
               </div>
               <div className="flex items-center gap-3 text-gray-700">
                 <span className="bg-green-100 p-2 rounded-full">🛡</span>
