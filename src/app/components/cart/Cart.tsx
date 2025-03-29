@@ -1,7 +1,7 @@
 "use client";
 import { createCheckoutSession } from "@/actions/stripe-actions";
 import { formatPrice } from "@/lib/utils";
-import { useCartStore } from "@/store/cart-store";
+import { useCartStore,type CartItem as CartItemType } from "@/store/cart-store";
 import { Loader2, ShoppingCart, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,13 +12,116 @@ import { useShallow } from "zustand/shallow";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import { getCurrentSession } from "@/actions/auth";
 import {redirect} from 'next/navigation'
-const freeShippingAmout = 15; //$15 for free shipping
 
+const freeShippingAmout = 15; //$15 for free shipping
+const CartItem = ({item}: {item: CartItemType}) => {
+    const { removeItem, updateQuantity } = useCartStore(
+        useShallow((state) => ({
+            removeItem: state.removeItem,
+            updateQuantity: state.updateQuantity,
+        }))
+    );
+
+    const isFreeItem = item.price === 0;
+const [loadingStates, setLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({})
+function handleRemoveItem(itemId: string) {
+  confirmAlert({
+    title: "Confirm Deletion",
+    message: "Are you sure you want to remove this item from your cart?",
+    buttons: [
+      {
+        label: "Yes, Remove",
+        onClick: async () => {
+          setLoadingStates((prev) => ({ ...prev, [itemId]: true })); 
+          await removeItem(itemId);
+          setLoadingStates((prev) => ({ ...prev, [itemId]: false })); 
+          toast.success("Item removed from cart!");
+        },
+      },
+      {
+        label: "Cancel",
+        onClick: () => {},
+      },
+    ],
+    overlayClassName: "custom-overlay",
+  });
+}
+     return (
+        <div
+                    className=" flex gap-4 p-4 hover:bg-gray-50"
+                    key={`cart-item-${item.id}`}
+                  >
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border ">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {item.title}
+                      </h3>
+                      <div className="text-sm text-gray-500 mt-1">
+                       {isFreeItem ? (
+                        <span className='text-emerald-600 font-medium'>FREE</span>
+                    ) : (
+                        formatPrice(item.price)
+                    )}
+                      </div>
+                      <div className="flex items-center gap-3 mt-2">
+                        {isFreeItem ? (
+                        <div className='text-sm text-emerald-600 font-medium'>
+                            Prize Item
+                        </div> ):
+                        (
+                        <>
+                        
+                        <select
+                          className="border rounded-md px-2 py-1 text-sm bg-white"
+                          name=""
+                          value={item.quantity}
+                          onChange={(e) => {
+                            updateQuantity(item.id, Number(e.target.value));
+                          }}
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                            <option
+                              value={num}
+                              key={`cart-qty-slct-${item.id}-${num}`}
+                            >
+                              {num}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="cursor-pointer bg-red-500 hover:bg-red-700 text-white rounded-lg py-2 px-3 text-sm transition-colors flex items-center gap-2"
+                          onClick={() => handleRemoveItem(item.id)}
+                          disabled={loadingStates[item.id]} 
+                        >
+                          {loadingStates[item.id] ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            "Remove"
+                          )}
+                        </button>
+                        </>
+                        )} 
+                        
+                      </div>
+                    </div>
+                  </div>
+    )
+
+
+  }
 export default function Cart() {
   const [loadingProceed, setLoadingProceed] = useState<boolean>(false);
-  const [loadingStates, setLoadingStates] = useState<{
-    [key: string]: boolean;
-  }>({});
+  
 
   async function getUser() {
     const {user} = await getCurrentSession();
@@ -87,35 +190,9 @@ export default function Cart() {
 
 
 
-
-function handleRemoveItem(itemId: string) {
-  confirmAlert({
-    title: "Confirm Deletion",
-    message: "Are you sure you want to remove this item from your cart?",
-    buttons: [
-      {
-        label: "Yes, Remove",
-        onClick: async () => {
-          setLoadingStates((prev) => ({ ...prev, [itemId]: true })); 
-          await removeItem(itemId);
-          setLoadingStates((prev) => ({ ...prev, [itemId]: false })); 
-          toast.success("Item removed from cart!");
-        },
-      },
-      {
-        label: "Cancel",
-        onClick: () => {},
-      },
-    ],
-    overlayClassName: "custom-overlay",
-  });
-}
-
   return (
     <React.Fragment>
-      {/* backdrop */}
       {isOpen && <div className="backdrop" onClick={close}></div>}
-      {/* cart drawer */}
 
       <div
         className={`
@@ -124,7 +201,6 @@ function handleRemoveItem(itemId: string) {
         `}
       >
         <div className="flex flex-col h-full">
-          {/* cart header */}
           <div className="flex items-center justify-between p-4 border-b bg-gray-50">
             <div className="flex items-center gap-2">
               <ShoppingCart className="w-5 h-5 " />
@@ -140,7 +216,6 @@ function handleRemoveItem(itemId: string) {
               <X className="w-5 h-5" />
             </button>
           </div>
-          {/* cart items */}
 
           <div className="flex-1 overflow-y-auto">
             {items.length === 0 ? (
@@ -165,70 +240,14 @@ function handleRemoveItem(itemId: string) {
             ) : (
               <div className="divide-y">
                 {items.map((item) => (
-                  <div
-                    className=" flex gap-4 p-4 hover:bg-gray-50"
-                    key={`cart-item-${item.id}`}
-                  >
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border ">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-
-                    {/* title */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {item.title}
-                      </h3>
-                      {/* price */}
-                      <div className="text-sm text-gray-500 mt-1">
-                        {formatPrice(item.price)}
-                      </div>
-                      {/* QTY */}
-                      <div className="flex items-center gap-3 mt-2">
-                        <select
-                          className="border rounded-md px-2 py-1 text-sm bg-white"
-                          name=""
-                          value={item.quantity}
-                          onChange={(e) => {
-                            updateQuantity(item.id, Number(e.target.value));
-                          }}
-                        >
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                            <option
-                              value={num}
-                              key={`cart-qty-slct-${item.id}-${num}`}
-                            >
-                              {num}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          className="cursor-pointer bg-red-500 hover:bg-red-700 text-white rounded-lg py-2 px-3 text-sm transition-colors flex items-center gap-2"
-                          onClick={() => handleRemoveItem(item.id)}
-                          disabled={loadingStates[item.id]} 
-                        >
-                          {loadingStates[item.id] ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            "Remove"
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                 <CartItem item={item} key={'cart-item-'+item.id}/>
                 ))}
               </div>
             )}
           </div>
-          {/* cart footer */}
 
           {items.length > 0 && (
             <div className="border-t">
-              {/* Shipping progress */}
               {ramianingForFreeShipping > 0 ? (
                 <div className="p-4 bg-blue-50 border-b">
                   <div className="flex items-center gap-2 text-blue-800 mb-2">
@@ -258,7 +277,6 @@ function handleRemoveItem(itemId: string) {
                 </div>
               )}
 
-              {/* summary */}
 
               <div className="p-4 space-y-4">
                 <div className="space-y-2">
