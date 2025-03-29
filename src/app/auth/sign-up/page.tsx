@@ -9,6 +9,8 @@ const SignUpSchema = zod.object({
   password: zod.string().min(5),
 });
 
+
+
 const SignUpPage = async () => {
   const { user } = await getCurrentSession();
 
@@ -21,6 +23,7 @@ const SignUpPage = async () => {
     formData: FormData
   ): Promise<{ message: string }> => {
     "use server";
+
 
     const parsed = SignUpSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) {

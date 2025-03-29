@@ -130,21 +130,17 @@ export default function Cart() {
 
   const {
     syncWithUser,
-    updateQuantity,
     setIsLoading,
     isOpen,
     clearCart,
     items,
     close,
     getTotalItems,
-    removeItem,
     getTotalPrice,
     cartId,
   } = useCartStore(
     useShallow((state) => ({
-      removeItem: state.removeItem,
       syncWithUser: state.syncWithUser,
-      updateQuantity: state.updateQuantity,
       items: state.items,
       setIsLoading: state.setIsLoading,
       isOpen: state.isOpen,
