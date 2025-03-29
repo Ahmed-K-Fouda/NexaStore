@@ -4,14 +4,17 @@ import { getAllProducts } from "@/sanity/lib/client";
 import SalesCampaignBanner from "./components/layout/banner/SalesCampaignBanner";
 import ProductGrid from "./components/product/ProductGrid";
 import ToastProvider from './components/toastify/ToastProvider';
-import WheelOfFortune from "./components/layout/WheelOfFortune/WheelOfFortune";
+import WheelOfFortune from './components/layout/WheelOfFortune/WheelOfFortune';
+import { getWheelOfFortuneConfiguration } from './../actions/wheel-of-fortune-actions';
 export default async function Home() {
   const { user } = await getCurrentSession();
   const products = await getAllProducts();
+  const { randomProducts, winningIndex } = await getWheelOfFortuneConfiguration();
   return (
     <div>
       <ToastProvider/>
-      <WheelOfFortune/>
+      <WheelOfFortune  products={randomProducts}
+            winningIndex={winningIndex}/>
       <SalesCampaignBanner />
 
       <section className="container mx-auto px-8">
