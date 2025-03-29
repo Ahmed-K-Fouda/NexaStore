@@ -217,19 +217,42 @@ export const syncCartWithUser = async (cartId: string | null) => {
   revalidatePath("/");
   return getOrCreateCart(existingUserCart.id);
 };
-
 export const addWinningItemToCart = async (
   cartId: string,
   product: Product
 ) => {
   const cart = await getOrCreateCart(cartId);
 
-  const updatedCart = await updateCartItems(cart.id, product._id, {
-    title: `🎁 ${product.title} (Won)`,
-    price: 0,
-    image: product.image ? urlFor(product.image).url() : "",
-    quantity: 1,
-  });
+  const existingItem = cart.items.find(
+    (item) => item.sanityProductId === product._id
+  );
 
-  return updatedCart;
+  if (existingItem) {
+    await prisma.cartLineItem.update({
+      where: {
+        id: existingItem.id,
+      },
+      data: {
+        quantity: existingItem.quantity + 1, 
+        price: 0, 
+        title: `🎁 ${product.title} (Won)`, 
+        image: product.image ? urlFor(product.image).url() : "",
+      },
+    });
+  } else {
+    await prisma.cartLineItem.create({
+      data: {
+        id: crypto.randomUUID(),
+        cartId: cart.id,
+        sanityProductId: product._id,
+        quantity: 1,
+        title: `🎁 ${product.title} (Won)`,
+        price: 0,
+        image: product.image ? urlFor(product.image).url() : "",
+      },
+    });
+  }
+
+  revalidatePath("/"); 
+  return getOrCreateCart(cartId);
 };
