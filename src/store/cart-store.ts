@@ -5,6 +5,7 @@ import {
 } from "@/actions/cart-actions";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getCurrentSession } from '@/actions/auth';
 
 export type CartItem = {
   id: string;
@@ -120,25 +121,34 @@ export const useCartStore = create<CartStore>()(
         }));
       },
 
-      syncWithUser: async () => {
-        const { cartId } = get();
-        if (!cartId) {
-          const cart = await getOrCreateCart();
-          set((state) => ({
-            ...state,
-            cartId: cart.id,
-            items: cart.items,
-          }));
-        }
-        const syncedCart = await syncCartWithUser(cartId);
-        if (syncedCart) {
-          set((state) => ({
-            ...state,
-            cartId: syncedCart.id,
-            items: syncedCart.items,
-          }));
-        }
-      },
+  syncWithUser: async () => {
+  const { cartId } = get();
+  const { user } = await getCurrentSession();
+
+  if (!user) {
+    // Clear the cart for anonymous users
+    set((state) => ({ ...state, items: [] }));
+    return;
+  }
+
+  if (!cartId) {
+    const cart = await getOrCreateCart();
+    set((state) => ({
+      ...state,
+      cartId: cart.id,
+      items: cart.items,
+    }));
+  } else {
+    const syncedCart = await syncCartWithUser(cartId);
+    if (syncedCart) {
+      set((state) => ({
+        ...state,
+        cartId: syncedCart.id,
+        items: syncedCart.items,
+      }));
+    }
+  }
+},
 
       clearCart: () => {
         set((state) => ({ ...state, items: [] }));

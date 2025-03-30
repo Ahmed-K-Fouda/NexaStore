@@ -22,6 +22,7 @@ const CartItem = ({item}: {item: CartItemType}) => {
         }))
     );
 
+    
     const isFreeItem = item.price === 0;
 const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
@@ -48,6 +49,7 @@ function handleRemoveItem(itemId: string) {
     overlayClassName: "custom-overlay",
   });
 }
+
      return (
         <div
                     className=" flex gap-4 p-4 hover:bg-gray-50"
@@ -151,7 +153,18 @@ export default function Cart() {
       getTotalItems: state.getTotalItems,
     }))
   );
+useEffect(() => {
+  const initCart = async () => {
+    await useCartStore.persist.rehydrate();
+    await syncWithUser();
 
+    // Clear the cart on the first load
+    clearCart();
+
+    setIsLoading(true);
+  };
+  initCart();
+}, [setIsLoading, syncWithUser, clearCart]);
   useEffect(() => {
     const initCart = async () => {
       await useCartStore.persist.rehydrate();

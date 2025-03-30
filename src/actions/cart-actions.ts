@@ -43,6 +43,7 @@ export const getOrCreateCart = async (cartId?: string | null) => {
   }
 
   if (!cartId) {
+    // Create a new empty cart
     return createCart();
   }
 
@@ -56,9 +57,12 @@ export const getOrCreateCart = async (cartId?: string | null) => {
   });
 
   if (!cart) {
+    // Create a new empty cart
     return createCart();
   }
 
+  // Clear the cart items if needed
+  cart.items = [];
   return cart;
 };
 
