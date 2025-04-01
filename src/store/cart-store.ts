@@ -7,6 +7,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getCurrentSession } from '@/actions/auth';
 import { clearCartInBackend } from "@/actions/cart-actions";
+import { createCart } from './../actions/cart-actions';
 export type CartItem = {
   id: string;
   title: string;
@@ -132,25 +133,23 @@ export const useCartStore = create<CartStore>()(
       },
 
 syncWithUser: async () => {
-  const { cartId } = get();
   const { user } = await getCurrentSession();
-
-  if (!user) {
-    set({ items: [], cartId: null });
-    return;
-  }
-
   let cart;
-  if (!cartId) {
+  if (user) {
     cart = await getOrCreateCart();
   } else {
-    cart = await syncCartWithUser(cartId);
+    const storedCartId = localStorage.getItem("cartId");
+    if (storedCartId) {
+      cart = await getOrCreateCart(storedCartId);
+    } else {
+      cart = await createCart(); 
+      localStorage.setItem("cartId", cart.id); 
+    }
   }
-
-  if (!cart) {
-    set({ items: [], cartId: null });
-  } else {
+  if (cart) {
     set({ cartId: cart.id, items: cart.items });
+  } else {
+    set({ items: [], cartId: null });
   }
 },
 
