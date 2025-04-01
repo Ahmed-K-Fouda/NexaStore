@@ -57,8 +57,8 @@ function handleRemoveItem(itemId: string) {
                   >
                     <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border ">
                       <Image
-                        src={item?.image}
-                        alt={item?.title}
+                        src={item.image}
+                        alt={item.title}
                         fill
                         className="object-cover"
                       />

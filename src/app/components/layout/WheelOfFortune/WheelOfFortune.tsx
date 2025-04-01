@@ -308,7 +308,7 @@ const WheelOfFortune = ({ products, winningIndex }: WheelOfFortuneProps) => {
                 <div className='flex flex-col items-center justify-center p-8 gap-4 bg-gray-50'>
                     <div 
                         className={`
-                            relative w-[350px] h-[350px] md:w-[600px] md:h-[600px] transition-all duration-1000 ease-in-out transform
+                            relative w-[280px] h-[280px] md:w-[48px] md:h-[48px] transition-all duration-1000 ease-in-out transform
                             ${showWinningItem ? 'scale-0 opacity-0 rotate-180' : 'scale-100 opacity-100'}
                         `}
                     >
