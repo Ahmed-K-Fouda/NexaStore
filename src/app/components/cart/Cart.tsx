@@ -57,8 +57,8 @@ function handleRemoveItem(itemId: string) {
                   >
                     <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border ">
                       <Image
-                        src={item.image}
-                        alt={item.title}
+                        src={item?.image}
+                        alt={item?.title}
                         fill
                         className="object-cover"
                       />
@@ -139,6 +139,7 @@ export default function Cart() {
     close,
     getTotalItems,
     getTotalPrice,
+    clearCartForce,
     cartId,
   } = useCartStore(
     useShallow((state) => ({
@@ -151,6 +152,8 @@ export default function Cart() {
       cartId: state.cartId,
       getTotalPrice: state.getTotalPrice,
       getTotalItems: state.getTotalItems,
+      clearCartForce:state.clearCartForce,
+
     }))
   );
 useEffect(() => {
@@ -158,39 +161,56 @@ useEffect(() => {
     await useCartStore.persist.rehydrate();
     await syncWithUser();
 
-    // Clear the cart on the first load
-    clearCart();
-
+    useCartStore.getState().clearCart();
+    
     setIsLoading(true);
   };
   initCart();
-}, [setIsLoading, syncWithUser, clearCart]);
-  useEffect(() => {
-    const initCart = async () => {
-      await useCartStore.persist.rehydrate();
-      await syncWithUser();
-      setIsLoading(true);
-    };
-    initCart();
-  }, [setIsLoading, syncWithUser]);
+}, [setIsLoading, syncWithUser]);
+useEffect(() => {
+  const initCart = async () => {
+    await useCartStore.persist.rehydrate();
+    await syncWithUser();
+    setIsLoading(true);
+  };
+  initCart();
+}, [setIsLoading, syncWithUser]);
+// async function handleProceedToCheckout() {
+//   const user = await getUser();
 
-  async function handleProceedToCheckout() {
+//   if (!user) {
+//     toast.warning("Please Sign up to continue. Redirecting...");
+//     redirect("/auth/sign-up");
+//   } else {
+//     clearCart();  
+//   }
 
-    const user = await getUser();
-    if (!user) {
-      toast.warning('Please Sign up to continue wait redirect..')
-      redirect("/auth/sign-up");
-    }else{
-      clearCart()
-    }
-    
-    if (!cartId || loadingProceed) return;
-    setLoadingProceed(true);
-    const checkoutUrl = await createCheckoutSession(cartId);
-    window.location.href = checkoutUrl;
-    setLoadingProceed(false);
+//   if (!cartId || loadingProceed) return;
+
+//   setLoadingProceed(true);
+  
+//   const checkoutUrl = await createCheckoutSession(cartId);
+//   window.location.href = checkoutUrl;  
+  
+//   setLoadingProceed(false);
+// }
+async function handleProceedToCheckout() {
+  const user = await getUser();
+
+  if (!user) {
+    toast.warning("Please Sign up to continue. Redirecting...");
+    redirect("/auth/sign-up");
   }
 
+  if (!cartId || loadingProceed) return;
+
+  setLoadingProceed(true);
+  
+  const checkoutUrl = await createCheckoutSession(cartId);
+  window.location.href = checkoutUrl;  
+  
+  setLoadingProceed(false);
+}
   const totalPrice = getTotalPrice();
 
   const ramianingForFreeShipping = useMemo(() => {
@@ -257,15 +277,29 @@ useEffect(() => {
 
           {items.length > 0 && (
             <div className="border-t">
+              <div className='flex items-center justify-center w-full'>
+                                             <button
+  onClick={() => {
+    clearCartForce();
+    toast.success("Item deleted succefully!");
+  }}
+  className="bg-red-500 cursor-pointer text-white px-4 py-2 rounded-lg"
+>
+  Delete All
+</button>
+                  </div>
               {ramianingForFreeShipping > 0 ? (
                 <div className="p-4 bg-blue-50 border-b">
+                   
                   <div className="flex items-center gap-2 text-blue-800 mb-2">
                     <span>🚚</span>
                     <span className="font-medium">
                       Add {formatPrice(ramianingForFreeShipping)} more for FREE
                       shipping
                     </span>
+                
                   </div>
+                 
                   <div className="w-full bg-blue-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -342,12 +376,17 @@ useEffect(() => {
                       <span>💳</span>
                       <span>All major payment accepted</span>
                     </div>
+
+                    <div>
+        
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
         </div>
+        
       </div>
     </React.Fragment>
   );
