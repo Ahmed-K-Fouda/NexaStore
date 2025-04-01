@@ -260,3 +260,47 @@ export const addWinningItemToCart = async (
   revalidatePath("/"); 
   return getOrCreateCart(cartId);
 };
+
+export const clearCartInBackend = async (cartId: string) => {
+  const cart = await prisma.cart.findUnique({
+    where: { id: cartId },
+    include: { items: true },
+  });
+
+  if (!cart) return;
+
+  await prisma.cartLineItem.deleteMany({
+    where: { cartId: cart.id },
+  });
+
+  await prisma.cart.delete({
+    where: { id: cart.id },
+  });
+
+  revalidatePath("/"); 
+  return null;
+};
+
+export const revalidateHome = async () => {
+  revalidatePath("/");
+};
+
+export const clearUserCart = async () => {
+  const { user } = await getCurrentSession();
+  if (!user) return;
+
+  const cart = await prisma.cart.findUnique({
+    where: { userId: user.id },
+    include: { items: true },
+  });
+
+  if (cart) {
+    await prisma.cartLineItem.deleteMany({
+      where: { cartId: cart.id },
+    });
+    await prisma.cart.delete({
+      where: { id: cart.id },
+    });
+  }
+};
+
