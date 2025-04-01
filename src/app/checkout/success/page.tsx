@@ -14,7 +14,7 @@ export default async function CheckoutSuccessPage({
 }: {
   searchParams: Promise<{ session_id: string }>;
 }) {
-  await clearUserCart(); // Clear the cart without revalidatePath
+  await clearUserCart(); 
   const { session_id } = await searchParams;
   if (!session_id) {
     redirect("/");
