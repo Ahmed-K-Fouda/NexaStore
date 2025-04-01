@@ -1,6 +1,5 @@
 import {
   getOrCreateCart,
-  syncCartWithUser,
   updateCartItems,
 } from "@/actions/cart-actions";
 import { create } from "zustand";
