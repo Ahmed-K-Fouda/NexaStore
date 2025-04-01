@@ -6,7 +6,7 @@ import {
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getCurrentSession } from '@/actions/auth';
-
+import { clearCartInBackend } from "@/actions/cart-actions";
 export type CartItem = {
   id: string;
   title: string;
@@ -27,6 +27,7 @@ type CartStore = {
   clearCart: () => void;
   open: () => void;
   close: () => void;
+clearCartForce: () => void;
   setIsLoading: (loaded: boolean) => void;
   syncWithUser: () => Promise<void>;
   getTotalItems: () => number;
@@ -40,6 +41,15 @@ export const useCartStore = create<CartStore>()(
       isOpen: false,
       isLoading: false,
       cartId: null,
+
+      clearCartForce: async () => {
+  const { cartId } = get();
+  if (cartId) {
+    await clearCartInBackend(cartId); 
+  }
+  set({ items: [], cartId: null });
+  localStorage.removeItem("cart-storage"); 
+},
 
       setStore: (store) => set(store),
 
@@ -121,34 +131,29 @@ export const useCartStore = create<CartStore>()(
         }));
       },
 
-  syncWithUser: async () => {
+syncWithUser: async () => {
   const { cartId } = get();
   const { user } = await getCurrentSession();
 
   if (!user) {
-    // Clear the cart for anonymous users
-    set((state) => ({ ...state, items: [] }));
+    set({ items: [], cartId: null });
     return;
   }
 
+  let cart;
   if (!cartId) {
-    const cart = await getOrCreateCart();
-    set((state) => ({
-      ...state,
-      cartId: cart.id,
-      items: cart.items,
-    }));
+    cart = await getOrCreateCart();
   } else {
-    const syncedCart = await syncCartWithUser(cartId);
-    if (syncedCart) {
-      set((state) => ({
-        ...state,
-        cartId: syncedCart.id,
-        items: syncedCart.items,
-      }));
-    }
+    cart = await syncCartWithUser(cartId);
+  }
+
+  if (!cart) {
+    set({ items: [], cartId: null });
+  } else {
+    set({ cartId: cart.id, items: cart.items });
   }
 },
+
 
       clearCart: () => {
         set((state) => ({ ...state, items: [] }));
