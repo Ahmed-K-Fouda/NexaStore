@@ -100,7 +100,7 @@ export default function Header({ user, categorySelector }: headerProps) {
             <Link
               href="/"
               onClick={() => push("/")}
-              className="absolute left-1/2 -translate-x-1/2"
+              className="absolute left-1/2 -translate-x-1/2  hidden lg:block "
             >
               <span className="sm:text-2xl text-xl font-bold tracking-light">
                 Click & Pick

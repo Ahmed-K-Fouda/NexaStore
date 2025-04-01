@@ -120,7 +120,7 @@ const WinningItem = ({ product, onClose }: { product: Product, onClose: () => vo
     setIsAdding(false);
   };
     return (
-        <div className='text-center animate-[slideUp_0.5s_ease-out]'>
+        <div className='overflow-scroll text-center animate-[slideUp_0.5s_ease-out]'>
             <div
                 className={`
                     p-8 rounded-xl bg-white shadow-2xl
@@ -142,7 +142,7 @@ const WinningItem = ({ product, onClose }: { product: Product, onClose: () => vo
                         🎉 Congratulations 🎉
                     </h3>
 
-                    <div className='flex flex-col items-center gap-6'>
+                    <div className='flex flex-col items-center gap-6 overflow-scroll'>
                         {product.image && (
                             <div className='relative group'>
                                 <div
@@ -308,7 +308,7 @@ const WheelOfFortune = ({ products, winningIndex }: WheelOfFortuneProps) => {
                 <div className='flex flex-col items-center justify-center p-8 gap-4 bg-gray-50'>
                     <div 
                         className={`
-                            relative w-[280px] h-[280px] md:w-[48px] md:h-[48px] transition-all duration-1000 ease-in-out transform
+                            relative w-[280px] h-[280px] md:w-[480px] md:h-[480px] transition-all duration-1000 ease-in-out transform
                             ${showWinningItem ? 'scale-0 opacity-0 rotate-180' : 'scale-100 opacity-100'}
                         `}
                     >
