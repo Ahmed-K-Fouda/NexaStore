@@ -26,46 +26,24 @@ export const createCart = async () => {
 
 export const getOrCreateCart = async (cartId?: string | null) => {
   const { user } = await getCurrentSession();
-
   if (user) {
     const userCart = await prisma.cart.findUnique({
-      where: {
-        userId: user.id,
-      },
-      include: {
-        items: true,
-      },
+      where: { userId: user.id },
+      include: { items: true },
     });
-
-    if (userCart) {
-      return userCart;
+    if (userCart) return userCart;
+    return createCart(); 
+  } else {
+    if (cartId) {
+      const cart = await prisma.cart.findUnique({
+        where: { id: cartId },
+        include: { items: true },
+      });
+      if (cart) return cart;
     }
+    return createCart(); 
   }
-
-  if (!cartId) {
-    // Create a new empty cart
-    return createCart();
-  }
-
-  const cart = await prisma.cart.findUnique({
-    where: {
-      id: cartId,
-    },
-    include: {
-      items: true,
-    },
-  });
-
-  if (!cart) {
-    // Create a new empty cart
-    return createCart();
-  }
-
-  // Clear the cart items if needed
-  cart.items = [];
-  return cart;
 };
-
 export const updateCartItems = async (
   cartId: string,
   sanityProductId: string,
