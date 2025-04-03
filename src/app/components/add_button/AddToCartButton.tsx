@@ -7,14 +7,16 @@ import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useShallow } from "zustand/shallow";
+import { product } from './../../../sanity/schemaTypes/schemas/product';
 
 type AddToCartProps = {
   product: Product;
 };
 
 export default function AddToCartButton({ product }: AddToCartProps) {
-  const { addItem, open,close } = useCartStore(
+  const {cartId, addItem, open,close } = useCartStore(
     useShallow((state) => ({
+      cartId: state.cartId,
       addItem: state.addItem,
       open: state.open,
       close:state.close
@@ -38,12 +40,27 @@ export default function AddToCartButton({ product }: AddToCartProps) {
       quantity: 1,
     });
 
+
     toast.success("Added to cart", {
       position: "top-right",
       autoClose: 2000,
       hideProgressBar: false,
       closeOnClick: true,
     })
+
+     try {
+            const anyWindow = window as any;
+
+            if(anyWindow.umami) {
+                anyWindow.umami.track('add_to_cart', {
+                  productId: product._id,
+                    productName: product.title, 
+                    productPrice: product.price,
+                    cartId: cartId,
+                    currency: 'USD',
+                })
+            }
+        } catch(e) {}
 
     setIsLoading(false);
     if(isLoading){
