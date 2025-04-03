@@ -202,6 +202,18 @@ async function handleProceedToCheckout() {
 
   if (!cartId || loadingProceed) return;
 
+   try {
+            const anyWindow = window as any;
+
+            if(anyWindow.umami) {
+                anyWindow.umami.track('proceed_to_checkout', {
+                    cartId: cartId,
+                    totalPrice: getTotalPrice(),
+                    currency: 'USD',
+                })
+            }
+        } catch(e) {}
+
   setLoadingProceed(true);
   
   const checkoutUrl = await createCheckoutSession(cartId);
