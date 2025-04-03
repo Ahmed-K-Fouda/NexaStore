@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-// import { umamiTrackCheckoutSuccessEvent } from "@/lib/umami";
+import { umamiTrackCheckoutSuccessEvent } from "@/lib/umami";
 import { createClient } from "next-sanity";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
           throw new Error("Cart not found");
         }
 
-        await sanityClient.create({
+        const order = await sanityClient.create({
           _type: "order",
           orderNumber: session.id.slice(-8).toUpperCase(),
           orderDate: new Date().toISOString(),
@@ -107,18 +107,18 @@ export async function POST(req: Request) {
           status: "PROCESSING",
         });
 
-        // try {
-        //   await umamiTrackCheckoutSuccessEvent({
-        //     cartId: cartId,
-        //     email: order.customerEmail || "-",
-        //     orderId: order.orderNumber,
-        //     orderTotal: order.totalPrice,
-        //     orderCurrency: "USD",
-        //   });
-        // } catch (e) {
-        //   console.log("Umami tracking error");
-        //   console.log(e);
-        // }
+        try {
+          await umamiTrackCheckoutSuccessEvent({
+            cartId: cartId,
+            email: order.customerEmail || "-",
+            orderId: order.orderNumber,
+            orderTotal: order.totalPrice,
+            orderCurrency: "USD",
+          });
+        } catch (e) {
+          console.log("Umami tracking error");
+          console.log(e);
+        }
 
         await prisma.cart.delete({
           where: {
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
         break;
       }
     }
-    // return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
   } catch (e) {
     console.log("Something went wrong:");
     console.log(e);
