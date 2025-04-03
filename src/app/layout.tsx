@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Metadata } from "next";
 import "./globals.css";
+import Script from 'next/script';
+import { Suspense } from 'react';
 import { Inter } from "next/font/google";
 import Header from "./components/layout/Header";
 import { getCurrentSession } from "@/actions/auth";
@@ -9,6 +11,9 @@ import HeaderCategorySelector from "./components/layout/header_category/HeaderCa
 import { getAllCategories } from "@/sanity/lib/client";
 import Cart from "./components/cart/Cart";
 import ToastProvider from "./components/toastify/ToastProvider";
+import AnalyticsTracker from './components/layout/tracker/AnalyticsTracker';
+
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -28,6 +33,14 @@ export default async function RootLayout({
       <body className={`${inter.className} antialiased bg-white `}>
         <ToastProvider/>
         <Header user={user} categorySelector={<HeaderCategorySelector />} />
+        <Script src='https://cloud.umami.is/script.js' strategy='beforeInteractive' data-website-id="6d484aac-4a57-4b10-a935-3de37fedaafd"/>
+
+         <Suspense>
+                    <AnalyticsTracker
+                        user={user}
+                    />
+                </Suspense>
+
         {children}
 
         <Cart />
