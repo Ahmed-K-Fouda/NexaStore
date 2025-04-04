@@ -12,6 +12,7 @@ import { getAllCategories } from "@/sanity/lib/client";
 import Cart from "./components/cart/Cart";
 import ToastProvider from "./components/toastify/ToastProvider";
 import AnalyticsTracker from './components/layout/tracker/AnalyticsTracker';
+import Footer from './components/footer/Footer';
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -44,6 +45,8 @@ export default async function RootLayout({
         {children}
 
         <Cart />
+
+       <Footer/> 
         <SanityLive />
       </body>
     </html>
