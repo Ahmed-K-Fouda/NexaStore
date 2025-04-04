@@ -18,9 +18,9 @@ export default function ContactPage() {
           <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-red-500 via-orange-500 to-yellow-400 text-transparent bg-clip-text drop-shadow-lg">
             Get in Touch
           </h1>
-          <p className="mt-4 text-xl text-gray-700 max-w-3xl mx-auto">
-            Have any questions or need assistance? We're here to help. Reach out to us and we will get back to you as soon as possible.
-          </p>
+         <p className="mt-4 text-xl text-gray-700 max-w-3xl mx-auto">
+            Have any questions or need assistance? We&rsquo;re here to help. Reach out to us and we will get back to you as soon as possible.
+         </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
