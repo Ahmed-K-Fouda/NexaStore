@@ -1,4 +1,4 @@
-import { getCurrentSession } from "@/actions/auth";
+// import { getCurrentSession } from "@/actions/auth";
 import { getAllProducts } from "@/sanity/lib/client";
 import ProductGrid from "./components/product/ProductGrid";
 import WheelOfFortune from './components/layout/WheelOfFortune/WheelOfFortune';
@@ -8,7 +8,7 @@ import Slider from './components/product/Slider';
 import SalesCampaignBanner from './components/layout/banner/SalesCampaignBanner';
 
 export default async function Home() {
-  const { user } = await getCurrentSession();
+  // const { user } = await getCurrentSession();
   const products = await getAllProducts(); 
   const { randomProducts, winningIndex } = await getWheelOfFortuneConfiguration();
 

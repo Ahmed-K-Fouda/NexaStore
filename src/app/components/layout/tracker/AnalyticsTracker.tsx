@@ -29,7 +29,9 @@ const AnalyticsTracker = ({user}: AnalyticsTrackerProps) => {
                     cartId,
                 })
             }
-        } catch(e) {}
+        } catch(e) {
+            console.log(e);
+        }
     }, [cartId]);
 
     useEffect(() => {
@@ -45,7 +47,9 @@ const AnalyticsTracker = ({user}: AnalyticsTrackerProps) => {
                     email: user.email,
                 })
             }
-        } catch(e) {}
+        } catch(e) {
+            console.log(e);
+        }
     }, [user])
 
     return <></>

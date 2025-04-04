@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import  SalesCampaignBanner  from '@/app/components/layout/banner/SalesCampaignBanner';
 
 export default function ContactPage() {
@@ -20,7 +19,7 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="mt-4 text-xl text-gray-700 max-w-3xl mx-auto">
-            Have any questions or need assistance? We're here to help. Reach out to us and we'll get back to you as soon as possible.
+            Have any questions or need assistance? We're here to help. Reach out to us and we will get back to you as soon as possible.
           </p>
         </motion.div>
 

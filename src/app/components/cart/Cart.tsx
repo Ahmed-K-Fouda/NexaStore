@@ -212,7 +212,9 @@ async function handleProceedToCheckout() {
                     currency: 'USD',
                 })
             }
-        } catch(e) {}
+        } catch(e) {
+          console.log(e);
+        }
 
   setLoadingProceed(true);
   

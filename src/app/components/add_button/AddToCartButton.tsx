@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useShallow } from "zustand/shallow";
-import { product } from './../../../sanity/schemaTypes/schemas/product';
 
 type AddToCartProps = {
   product: Product;
@@ -60,7 +59,9 @@ export default function AddToCartButton({ product }: AddToCartProps) {
                     currency: 'USD',
                 })
             }
-        } catch(e) {}
+        } catch(e) {
+          console.log(e);
+        }
 
     setIsLoading(false);
     if(isLoading){
