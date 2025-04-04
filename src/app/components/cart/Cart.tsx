@@ -13,6 +13,12 @@ import "react-confirm-alert/src/react-confirm-alert.css";
 import { getCurrentSession } from "@/actions/auth";
 import {redirect} from 'next/navigation'
 
+interface UmamiWindow extends Window {
+  umami?: {
+    track: (eventName: string, data: { cartId: string; totalPrice: number; currency: string; }) => void;
+  };
+}
+
 const freeShippingAmout = 15; //$15 for free shipping
 const CartItem = ({item}: {item: CartItemType}) => {
     const { removeItem, updateQuantity } = useCartStore(
@@ -202,20 +208,19 @@ async function handleProceedToCheckout() {
 
   if (!cartId || loadingProceed) return;
 
-   try {
-            const anyWindow = window as any;
-
-            if(anyWindow.umami) {
-                anyWindow.umami.track('proceed_to_checkout', {
-                    cartId: cartId,
-                    totalPrice: getTotalPrice(),
-                    currency: 'USD',
-                })
-            }
-        } catch(e) {
-          console.log(e);
-        }
-
+    try {
+      const umamiWindow = window as UmamiWindow;
+      if (umamiWindow.umami) {
+        umamiWindow.umami.track("proceed_to_checkout", {
+          cartId: cartId,
+          totalPrice: getTotalPrice(),
+          currency: "USD",
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    
   setLoadingProceed(true);
   
   const checkoutUrl = await createCheckoutSession(cartId);
