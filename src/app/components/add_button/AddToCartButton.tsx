@@ -12,13 +12,29 @@ type AddToCartProps = {
   product: Product;
 };
 
+interface UmamiWindow extends Window {
+  umami?: {
+    track: (
+      eventName: string,
+      data: {
+        productId: string;
+        productName: string;
+        productPrice: number;
+        cartId: string | null;
+        currency: string;
+      }
+    ) => void;
+  };
+}
+
+
 export default function AddToCartButton({ product }: AddToCartProps) {
-  const {cartId, addItem, open,close } = useCartStore(
+  const { cartId, addItem, open, close } = useCartStore(
     useShallow((state) => ({
       cartId: state.cartId,
       addItem: state.addItem,
       open: state.open,
-      close:state.close
+      close: state.close,
     }))
   );
 
@@ -39,40 +55,37 @@ export default function AddToCartButton({ product }: AddToCartProps) {
       quantity: 1,
     });
 
-
     toast.success("Added to cart", {
       position: "top-right",
       autoClose: 2000,
       hideProgressBar: false,
       closeOnClick: true,
-    })
+    });
 
-     try {
-            const anyWindow = window as any;
-
-            if(anyWindow.umami) {
-                anyWindow.umami.track('add_to_cart', {
-                  productId: product._id,
-                    productName: product.title, 
-                    productPrice: product.price,
-                    cartId: cartId,
-                    currency: 'USD',
-                })
-            }
-        } catch(e) {
-          console.log(e);
-        }
-
-    setIsLoading(false);
-    if(isLoading){
-      close()
-    }else{
-      open()
+    try {
+      const umamiWindow = window as UmamiWindow;
+      if (umamiWindow.umami) {
+        umamiWindow.umami.track("add_to_cart", {
+          productId: product._id,
+          productName: product.title,
+          productPrice: product.price,
+          cartId: cartId,
+          currency: "USD",
+        });
+      }
+    } catch (e) {
+      console.log(e);
     }
 
+    setIsLoading(false);
+    if (isLoading) {
+      close();
+    } else {
+      open();
+    }
   }
 
-  if (!product.price) return;
+  if (!product.price) return null;
 
   return (
     <button
@@ -87,16 +100,16 @@ export default function AddToCartButton({ product }: AddToCartProps) {
         disabled:opacity-80 disabled:cursor-not-allowed
         disabled:hover:scale-100 disabled:active:scale-100
         disabled:hover:from-red-500 disabled:hover:to-red-600
-    `}
+      `}
       onClick={handleAddToCart}
     >
       {isLoading ? (
-        <React.Fragment>
+        <>
           <Loader2 className="w-6 h-6 animate-spin" />
           <span>Adding To Cart...</span>
-        </React.Fragment>
+        </>
       ) : (
-        <React.Fragment>
+        <>
           <svg
             className="w-6 h-6"
             fill="none"
@@ -111,7 +124,7 @@ export default function AddToCartButton({ product }: AddToCartProps) {
             />
           </svg>
           Add to cart - {formatPrice(product.price || 0)}
-        </React.Fragment>
+        </>
       )}
     </button>
   );
