@@ -89,10 +89,12 @@ export default function Header({ user, categorySelector }: headerProps) {
               </button>
 
               <nav className="hidden md:flex gap-4 lg:gap-6 text-sm font-semibold">
-                <Link href="">Shop</Link>
-                <Link href="">New Arrivals</Link>
+                <Link href="/">Home</Link>
+                <Link href="/about">About Us</Link>
+                <Link href="/blog">Blog</Link>
+                <Link href="/services">Services</Link>
+                <Link href="/contact">Contact</Link>
                 {categorySelector}
-                <Link href="">Sales</Link>
               </nav>
             </div>
             {/* LOGO */}
