@@ -8,6 +8,15 @@ import { useCartStore } from '@/store/cart-store';
 type AnalyticsTrackerProps = {
     user: Partial<User> | null;
 }
+interface UmamiWindow extends Window {
+  umami?: {
+    track: (
+      eventName: string,
+      data: { cartId: string; totalPrice: number; currency: string }
+    ) => void;
+    identify: (data: { cartId?: string; email?: string | null }) => void;
+  };
+}
 const AnalyticsTracker = ({user}: AnalyticsTrackerProps) => {
 
     const { cartId } = useCartStore(
@@ -21,18 +30,13 @@ const AnalyticsTracker = ({user}: AnalyticsTrackerProps) => {
             return;
         }
 
-        try {
-            const anyWindow = window as any;
-
-            if(anyWindow.umami) {
-                anyWindow.umami.identify({
-                    cartId,
-                })
-            }
-        } catch(e) {
-            console.log(e);
-        }
-    }, [cartId]);
+         try {
+      const umamiWindow = window as UmamiWindow;
+      umamiWindow.umami?.identify({ cartId });
+    } catch (e) {
+      console.log(e);
+    }
+    }, [cartId,user]);
 
     useEffect(() => {
         if(!user) {
@@ -40,17 +44,12 @@ const AnalyticsTracker = ({user}: AnalyticsTrackerProps) => {
         }
 
         try {
-            const anyWindow = window as any;
-
-            if(anyWindow.umami) {
-                anyWindow.umami.identify({
-                    email: user.email,
-                })
-            }
-        } catch(e) {
-            console.log(e);
-        }
-    }, [user])
+      const umamiWindow = window as UmamiWindow;
+      umamiWindow.umami?.identify({ email: user.email });
+    } catch (e) {
+      console.log(e);
+    }
+  }, [user?.email]);
 
     return <></>
 }
