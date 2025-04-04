@@ -1,13 +1,11 @@
 import { getCurrentSession } from "@/actions/auth";
 import { getAllProducts } from "@/sanity/lib/client";
 import ProductGrid from "./components/product/ProductGrid";
-import ToastProvider from './components/toastify/ToastProvider';
 import WheelOfFortune from './components/layout/WheelOfFortune/WheelOfFortune';
 import { getWheelOfFortuneConfiguration } from './../actions/wheel-of-fortune-actions';
 import Banner from './components/product/Banner';
 import Slider from './components/product/Slider';
 import SalesCampaignBanner from './components/layout/banner/SalesCampaignBanner';
-import Footer from './components/footer/Footer';
 
 export default async function Home() {
   const { user } = await getCurrentSession();
@@ -16,7 +14,6 @@ export default async function Home() {
 
   return (
     <div>
-      <ToastProvider />
       <WheelOfFortune products={randomProducts} winningIndex={winningIndex} />
     <SalesCampaignBanner/>
       <Banner products={products} />
@@ -32,7 +29,6 @@ export default async function Home() {
         <ProductGrid products={products} />
       </section>
 
-       <Footer/> 
     </div>
   );
 }
