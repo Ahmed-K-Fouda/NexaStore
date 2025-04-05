@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaSearch } from "react-icons/fa";
+import  Link  from 'next/link';
 
 const Footer: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,11 +39,11 @@ const Footer: React.FC = () => {
           <div className="w-full md:w-1/4 mb-8">
             <h3 className="text-3xl font-bold text-white mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="#"    className="hover:text-white transition-colors duration-300">Home</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-300">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-300">Services</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-300">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors duration-300">Contact</a></li>
+              <li><Link href="/"    className="hover:text-white transition-colors duration-300">Home</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors duration-300">About Us</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors duration-300">Services</Link></li>
+              <li><Link href="/blog" className="hover:text-white transition-colors duration-300">Blog</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors duration-300">Contact</Link></li>
             </ul>
           </div>
 
